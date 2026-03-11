@@ -750,11 +750,14 @@ if (
 
                     // Woo Blocks checkout — inject district/ward dropdowns
                     // Must depend on react and react-dom for React components to work
+                    $checkout_asset = COOLBIRDZIK_DWAS_PLUGIN_DIR . 'assets/dist/checkout.js';
+                    $checkout_asset_version = file_exists($checkout_asset) ? filemtime($checkout_asset) : $this->_version;
+
                     wp_enqueue_script(
                         'coolbirdzik_blocks_checkout',
                         plugins_url('assets/dist/checkout.js', __FILE__),
                         array('react', 'react-dom'),
-                        $this->_version,
+                        $checkout_asset_version,
                         true
                     );
 

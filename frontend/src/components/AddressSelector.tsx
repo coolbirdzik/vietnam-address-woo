@@ -18,6 +18,8 @@ const BLOCKS_SELECT_CLASSES = {
 };
 
 const CHECKOUT_LAYOUT_STYLE_ID = 'vncheckout-blocks-layout';
+const BLOCKS_PROXY_SELECT_SUFFIX = '__vncheckout_select';
+const BLOCKS_PROXY_SOURCE_ATTR = 'data-vncheckout-source-id';
 
 // Store found element IDs for Select2 jQuery selectors
 const foundIds: Record<string, string> = {};
@@ -45,18 +47,16 @@ const ensureCheckoutLayoutStyles = () => {
         min-width: 0 !important;
         box-sizing: border-box !important;
         flex: 1 1 calc(50% - 8px) !important;
+        margin-top: 16px !important;
       }
 
       #billing.wc-block-components-address-form .wc-block-components-address-form__state .wc-blocks-components-select,
       #billing.wc-block-components-address-form .wc-block-components-address-form__state .wc-blocks-components-select__container,
       #billing.wc-block-components-address-form .wc-block-components-address-form__state .wc-blocks-components-select__select,
-      #billing.wc-block-components-address-form .wc-block-components-address-form__city .wc-blocks-components-select,
       #billing.wc-block-components-address-form .wc-block-components-address-form__city .wc-blocks-components-select__container,
       #billing.wc-block-components-address-form .wc-block-components-address-form__city .wc-blocks-components-select__select,
-      #shipping.wc-block-components-address-form .wc-block-components-address-form__state .wc-blocks-components-select,
       #shipping.wc-block-components-address-form .wc-block-components-address-form__state .wc-blocks-components-select__container,
       #shipping.wc-block-components-address-form .wc-block-components-address-form__state .wc-blocks-components-select__select,
-      #shipping.wc-block-components-address-form .wc-block-components-address-form__city .wc-blocks-components-select,
       #shipping.wc-block-components-address-form .wc-block-components-address-form__city .wc-blocks-components-select__container,
       #shipping.wc-block-components-address-form .wc-block-components-address-form__city .wc-blocks-components-select__select {
         width: 100% !important;
@@ -134,11 +134,52 @@ const findCountryElement = (prefix: string): HTMLSelectElement | null => {
 
 const cloneInputAttributesToSelect = (input: HTMLInputElement, select: HTMLSelectElement) => {
   Array.from(input.attributes).forEach((attr) => {
-    if (attr.name === 'type' || attr.name === 'class' || attr.name === 'value') {
+    if (['type', 'class', 'value', 'id', 'name'].includes(attr.name)) {
       return;
     }
     select.setAttribute(attr.name, attr.value);
   });
+};
+
+const getBlocksProxySelectId = (sourceId: string) => `${sourceId}${BLOCKS_PROXY_SELECT_SUFFIX}`;
+
+const findBlocksProxySelect = (sourceId: string): HTMLSelectElement | null => {
+  const proxy = document.getElementById(getBlocksProxySelectId(sourceId));
+  return proxy instanceof HTMLSelectElement ? proxy : null;
+};
+
+const syncBlocksSourceInput = (
+  select: HTMLSelectElement,
+  value: string,
+  dispatchEvents = false
+) => {
+  const sourceId = select.getAttribute(BLOCKS_PROXY_SOURCE_ATTR);
+  if (!sourceId) {
+    return;
+  }
+
+  const source = document.getElementById(sourceId);
+  if (!(source instanceof HTMLInputElement)) {
+    return;
+  }
+
+  const nativeSetter = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    'value'
+  )?.set;
+
+  if (nativeSetter) {
+    nativeSetter.call(source, value);
+  } else if (source.value !== value) {
+    source.value = value;
+  }
+
+  if (!dispatchEvents) {
+    return;
+  }
+
+  source.dispatchEvent(new Event('input', { bubbles: true }));
+  source.dispatchEvent(new Event('change', { bubbles: true }));
 };
 
 const createBlocksExpandIcon = () => {
@@ -163,6 +204,11 @@ const findAddress2Element = (prefix: string): HTMLElement | null => {
   const form = document.getElementById(prefix);
 
   if (form) {
+    const proxySelect = form.querySelector(`.wc-block-components-address-form__address_2 select[${BLOCKS_PROXY_SOURCE_ATTR}]`);
+    if (proxySelect instanceof HTMLElement) {
+      return proxySelect;
+    }
+
     const input = form.querySelector('.wc-block-components-address-form__address_2 input:not(.wc-block-components-address-form__address_2-hidden-input)');
     if (input instanceof HTMLElement) {
       return input;
@@ -226,10 +272,21 @@ const convertBlocksInputToSelect = (input: HTMLInputElement): HTMLSelectElement 
   const wrapper = input.parentElement;
   const labelText = wrapper?.querySelector(`label[for="${input.id}"]`)?.textContent?.trim() || input.getAttribute('aria-label') || '';
   const initialValue = input.value;
+  const existingProxy = findBlocksProxySelect(input.id);
+
+  if (existingProxy) {
+    if (initialValue && !existingProxy.value) {
+      existingProxy.dataset.vncheckoutInitialValue = initialValue;
+      syncBlocksSourceInput(existingProxy, initialValue);
+    }
+    return existingProxy;
+  }
+
   const select = document.createElement('select');
 
   cloneInputAttributesToSelect(input, select);
-  select.id = input.id;
+  select.id = getBlocksProxySelectId(input.id);
+  select.setAttribute(BLOCKS_PROXY_SOURCE_ATTR, input.id);
   select.className = BLOCKS_SELECT_CLASSES.select;
   select.size = 1;
 
@@ -242,7 +299,16 @@ const convertBlocksInputToSelect = (input: HTMLInputElement): HTMLSelectElement 
   }
 
   wrapper.classList.remove('wc-block-components-text-input');
-  wrapper.textContent = '';
+  Array.from(wrapper.children).forEach((child) => {
+    if (child instanceof HTMLElement) {
+      child.style.display = 'none';
+      child.setAttribute('aria-hidden', 'true');
+    }
+  });
+
+  input.style.display = 'none';
+  input.setAttribute('aria-hidden', 'true');
+  input.tabIndex = -1;
 
   const selectWrapper = document.createElement('div');
   selectWrapper.className = BLOCKS_SELECT_CLASSES.wrapper;
@@ -251,7 +317,7 @@ const convertBlocksInputToSelect = (input: HTMLInputElement): HTMLSelectElement 
   selectContainer.className = BLOCKS_SELECT_CLASSES.container;
 
   const label = document.createElement('label');
-  label.htmlFor = input.id;
+  label.htmlFor = select.id;
   label.className = BLOCKS_SELECT_CLASSES.label;
   label.textContent = labelText;
 
@@ -260,6 +326,10 @@ const convertBlocksInputToSelect = (input: HTMLInputElement): HTMLSelectElement 
   selectContainer.appendChild(createBlocksExpandIcon());
   selectWrapper.appendChild(selectContainer);
   wrapper.appendChild(selectWrapper);
+
+  select.addEventListener('change', () => {
+    syncBlocksSourceInput(select, select.value, true);
+  });
 
   return select;
 };
@@ -274,12 +344,9 @@ const findEl = (prefix: string, field: AddressField): HTMLSelectElement | null =
   for (const id of possibleIds) {
     const el = field === 'address_2'
       ? findAddress2Element(prefix)
-      : document.getElementById(id);
+      : findBlocksProxySelect(id) || document.getElementById(id);
 
     if (el) {
-      // Store the found ID for Select2
-      foundIds[getFieldKey(prefix, field)] = el.id;
-
       // If it's an input (WooCommerce Blocks), convert to select
       if (el.tagName === 'INPUT') {
         const useBlocksSelectMarkup = field === 'city' || field === 'address_2';
@@ -291,10 +358,12 @@ const findEl = (prefix: string, field: AddressField): HTMLSelectElement | null =
           if (!useBlocksSelectMarkup) {
             convertedFromInput.add(id);
           }
+          foundIds[getFieldKey(prefix, field)] = select.id;
           console.log(`[AddressSelector] Converted ${id} from INPUT to SELECT`);
           return select;
         }
       }
+      foundIds[getFieldKey(prefix, field)] = el.id;
       // Already a SELECT - don't add Select2, let WooCommerce handle it
       console.log(`[AddressSelector] ${id} is already a SELECT, skipping Select2`);
       return el as HTMLSelectElement;
@@ -316,7 +385,7 @@ const getSelect2Selector = (prefix: string, field: AddressField): string | null 
 };
 
 const getEl = (id: string): HTMLSelectElement | null => {
-  const el = document.getElementById(id);
+  const el = findBlocksProxySelect(id) || document.getElementById(id);
   // If it's an input (WooCommerce Blocks), convert to select
   if (el && el.tagName === 'INPUT') {
     const select = document.createElement('select');
@@ -379,10 +448,9 @@ const buildOptions = (
     el.appendChild(opt);
   });
   const resolvedValue = currentValue || el.dataset.vncheckoutInitialValue || '';
-  if (resolvedValue) {
-    el.value = resolvedValue;
-    delete el.dataset.vncheckoutInitialValue;
-  }
+  el.value = resolvedValue;
+  syncBlocksSourceInput(el, resolvedValue);
+  delete el.dataset.vncheckoutInitialValue;
 };
 
 // Get address schema from wp_localize_script
@@ -444,7 +512,7 @@ export const AddressSelector: React.FC<AddressSelectorProps> = ({ type, showWard
     if (initialProvince) {
       setProvince(initialProvince);
     }
-    if (!isNewSchema && initialDistrict) {
+    if (initialDistrict) {
       setDistrict(initialDistrict);
     }
   }, [prefix, isNewSchema]);
@@ -611,6 +679,7 @@ export const AddressSelector: React.FC<AddressSelectorProps> = ({ type, showWard
 
     const onChange = () => {
       const val = cityEl.value;
+      setDistrict(val);
       console.log(`[AddressSelector ${prefix}] City/Ward changed to:`, val);
       // Trigger shipping recalc when ward is chosen
       if (val && typeof jQuery !== 'undefined') {

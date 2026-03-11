@@ -24,20 +24,14 @@ console.log('[VN Checkout] Schema:', schema, 'showWard:', showWard);
 
 // Mount AddressSelector for billing and shipping address types
 const initCheckout = () => {
-  // Create container for billing
-  const billingContainer = document.createElement('div');
-  billingContainer.id = 'coolbirdzik-billing-selector';
-  document.body.appendChild(billingContainer);
+  const existingContainer = document.getElementById('coolbirdzik-checkout-app');
+  if (existingContainer) {
+    return;
+  }
 
-  // Create container for shipping
-  const shippingContainer = document.createElement('div');
-  shippingContainer.id = 'coolbirdzik-shipping-selector';
-  document.body.appendChild(shippingContainer);
-
-  // Create container for shipping calculator (cart page)
-  const calcContainer = document.createElement('div');
-  calcContainer.id = 'coolbirdzik-calc-selector';
-  document.body.appendChild(calcContainer);
+  const container = document.createElement('div');
+  container.id = 'coolbirdzik-checkout-app';
+  document.body.appendChild(container);
 
   // Wrap everything in QueryClientProvider
   const App = () => (
@@ -48,9 +42,7 @@ const initCheckout = () => {
     </QueryClientProvider>
   );
 
-  createRoot(billingContainer).render(<App />);
-  createRoot(shippingContainer).render(<App />);
-  createRoot(calcContainer).render(<App />);
+  createRoot(container).render(<App />);
 };
 
 // Initialize when DOM is ready
