@@ -9,7 +9,7 @@
 [![PHP Version](https://img.shields.io/badge/PHP-7.4%2B-777BB4)](https://www.php.net)
 [![License](https://img.shields.io/badge/License-GPLv3-green.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Woo plugin optimized for the Vietnamese market with Province/City, District, and Ward/Commune selection system.
+Woocommerce plugin optimized for the Vietnamese market with Province/City, District, and Ward/Commune selection system.
 
 <div align="center">
   <img src="screenshot1.png" alt="Checkout" width="600">
