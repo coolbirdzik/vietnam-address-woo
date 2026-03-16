@@ -1,7 +1,7 @@
 === Vietnam Address Woo ===
 Contributors: coolbirdzik
 Donate link: https://github.com/coolbirdzik/vietnam-address-woo
-Tags: woocommerce, vietnam, checkout, address, province, district, ward
+Tags: woocommerce, vietnam, checkout, address
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.4
@@ -9,53 +9,53 @@ Stable tag: 1.0.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Tối ưu checkout Woo cho thị trường Việt Nam với bộ chọn Tỉnh/Thành phố, Quận/Huyện, Xã/Phường.
+Optimize WooCommerce checkout for the Vietnamese market with Province/City, District, Ward dropdown selectors.
 
-== Mô tả ==
+== Description ==
 
-Plugin thay thế trường địa chỉ mặc định của Woo bằng bộ chọn địa chỉ Việt Nam chuẩn.
+This plugin replaces the default WooCommerce address fields with standard Vietnamese address selectors.
 
-**Tính năng:**
-- Dropdown Tỉnh/Thành phố, Quận/Huyện, Xã/Phường với dữ liệu hành chính đầy đủ
-- Tự động load danh sách theo cấp đã chọn
-- Gộp Họ & Tên thành một trường "Họ và tên"
-- Thêm trường Số điện thoại người nhận hàng
-- Hỗ trợ cả checkout cổ điển và Woo Checkout Blocks
-- Tùy chọn hiển thị VNĐ
-- Hỗ trợ cấu hình phí vận chuyển theo Tỉnh/Thành phố
-- Không tạo bảng database mới, dữ liệu lưu trong mảng PHP
+**Features:**
+- Province/City, District, Ward dropdowns with complete administrative data
+- Auto-load lists based on selected level
+- Combine First & Last Name into a single "Full Name" field
+- Add recipient phone number field
+- Supports both classic checkout and Woo Checkout Blocks
+- Optional VND currency display
+- Shipping fee configuration by Province/City
+- No new database tables, data stored in PHP arrays
 
-**Yêu cầu:**
+**Requirements:**
 - WordPress 5.0+
 - WooCommerce 8.0+
 - PHP 7.4+
 
-== Cài đặt ==
+== Installation ==
 
-1. Tải plugin hoặc cài đặt từ Plugins → Add New
-2. Kích hoạt plugin
-3. Vào Settings → Vietnam Checkout để tùy chỉnh
+1. Download plugin or install from Plugins → Add New
+2. Activate the plugin
+3. Go to Settings → Vietnam Checkout to customize
 
-== Câu hỏi thường gặp ==
+== Frequently Asked Questions ==
 
-= Plugin có miễn phí không? =
-Có. Miễn phí và mã nguồn mở GPLv3.
+= Is the plugin free? =
+Yes. Free and open source under GPLv3.
 
-= Dữ liệu địa chỉ có cập nhật không? =
-Có, được cập nhật định kỳ từ nguồn chính thức.
+= Is address data updated? =
+Yes, regularly updated from official sources.
 
-= Plugin có làm chậm website không? =
-Không. Dữ liệu lưu trong mảng PHP, không truy vấn database.
+= Does the plugin slow down the website? =
+No. Data is stored in PHP arrays, no database queries.
 
-== Lịch sử phiên bản ==
+== Changelog ==
 
 = 1.0.0 - 2026-02-25 =
-- Phiên bản đầu tiên
-- Bộ chọn Tỉnh/Thành phố, Quận/Huyện, Xã/Phường
-- Tối ưu checkout và thêm trường điện thoại
+- Initial release
+- Province/City, District, Ward selectors
+- Checkout optimization and phone field addition
 
-== Thông tin thêm ==
+== Additional Information ==
 
 - GitHub: https://github.com/coolbirdzik/vietnam-address-woo
-- Phát triển bởi: Nguyễn Tấn Hưng
-- Không gửi dữ liệu khách hàng ra bên ngoài
+- Developed by: Nguyen Tan Hung
+- Does not send customer data externally

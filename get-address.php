@@ -1,4 +1,8 @@
 <?php
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
 header( 'Content-Type: application/json; charset=UTF-8' );
 
 $matp = isset($_POST['matp']) ? htmlspecialchars(trim($_POST['matp'])) : '';

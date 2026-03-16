@@ -1,3 +1,8 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+?>
 <div class="wrap vncheckout-settings-wrap vncheckout-modern-wrap">
     <div class="vncheckout-header">
         <h1><?php esc_html_e('Vietnam Address Woo', 'vietnam-address-woo'); ?></h1>
